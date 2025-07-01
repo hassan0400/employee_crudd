@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Scanner</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #2d3748;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+
+        .scanner-section {
+            padding: 30px;
+        }
+
+        .scanner-container {
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        #qr-reader {
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .scanner-controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .status-section {
+            background: #f0f4ff;
+            border: 1px solid #c7d2fe;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .status-title {
+            font-weight: 600;
+            color: #4338ca;
+            margin-bottom: 10px;
+        }
+
+        .attendance-log {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .log-entry {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+
+        .employee-info {
+            flex: 1;
+        }
+
+        .employee-name {
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .employee-id {
+            font-size: 12px;
+            color: #718096;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-in {
+            background: #d1fae5;
+            color: #047857;
+        }
+
+        .status-out {
+            background: #fed7d7;
+            color: #c53030;
+        }
+
+        .time-stamp {
+            font-size: 12px;
+            color: #718096;
+            margin-left: 10px;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #047857;
+            border: 1px solid #a7f3d0;
+        }
+
+        .alert-error {
+            background: #fed7d7;
+            color: #c53030;
+            border: 1px solid #fecaca;
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .back-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 0;
+                border-radius: 0;
+                min-height: 100vh;
+            }
+
+            .scanner-section {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📱 Attendance Scanner</h1>
+            <p>Scan employee QR codes for attendance tracking</p>
+        </div>
+
+        <div class="scanner-section">
+            <div id="alert-container"></div>
+
+            <div class="scanner-container">
+                <div id="qr-reader"></div>
+                <div class="scanner-controls">
+                    <button class="btn btn-primary" onclick="startScanner()">Start Scanner</button>
+                    <button class="btn btn-secondary" onclick="stopScanner()">Stop Scanner</button>
+                </div>
+            </div>
+
+            <div class="status-section">
+                <div class="status-title">📊 Today's Summary</div>
+                <div id="daily-summary">
+                    <div>Total Present: <strong id="present-count">0</strong></div>
+                    <div>Total Scans: <strong id="scan-count">0</strong></div>
+                </div>
+            </div>
+
+            <div class="attendance-log">
+                <h3 style="margin-bottom: 15px; color: #2d3748;">Recent Activity</h3>
+                <div id="recent-logs">
+                    <!-- Recent attendance logs will appear here -->
+                </div>
+            </div>
+
+            <div class="back-link">
+                <a href="/dashboard">← Back to Dashboard</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let html5QrcodeScanner = null;
+        let recentLogs = [];
+        let todayStats = { present: 0, totalScans: 0 };
+
+        function showAlert(message, type = 'success') {
+            const alertContainer = document.getElementById('alert-container');
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+            
+            alertContainer.innerHTML = '';
+            alertContainer.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+
+        function updateStats() {
+            document.getElementById('present-count').textContent = todayStats.present;
+            document.getElementById('scan-count').textContent = todayStats.totalScans;
+        }
+
+        function addLogEntry(employeeData, action, time) {
+            const logEntry = {
+                employee: employeeData,
+                action: action,
+                time: time,
+                timestamp: new Date().toISOString()
+            };
+            
+            recentLogs.unshift(logEntry);
+            if (recentLogs.length > 10) recentLogs.pop();
+            
+            updateLogDisplay();
+            todayStats.totalScans++;
+            if (action === 'Sign In') todayStats.present++;
+            updateStats();
+        }
+
+        function updateLogDisplay() {
+            const logsContainer = document.getElementById('recent-logs');
+            
+            if (recentLogs.length === 0) {
+                logsContainer.innerHTML = '<div style="text-align: center; color: #718096; padding: 20px;">No recent activity</div>';
+                return;
+            }
+            
+            logsContainer.innerHTML = recentLogs.map(log => `
+                <div class="log-entry">
+                    <div class="employee-info">
+                        <div class="employee-name">${log.employee.name}</div>
+                        <div class="employee-id">ID: ${log.employee.id}</div>
+                    </div>
+                    <div>
+                        <span class="status-badge ${log.action === 'Sign In' ? 'status-in' : 'status-out'}">
+                            ${log.action}
+                        </span>
+                        <div class="time-stamp">${log.time}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function processAttendance(employeeId) {
+            // In a real application, this would make an API call to your backend
+            // For demo purposes, we'll simulate the process
+            
+            const currentTime = new Date().toLocaleTimeString('en-US', { 
+                hour12: false, 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            
+            // Simulate employee data (in real app, fetch from database)
+            const employeeData = {
+                id: employeeId,
+                name: `Employee ${employeeId.substring(0, 6)}`,
+                lastAction: Math.random() > 0.5 ? 'out' : 'in' // Random for demo
+            };
+            
+            // Determine action based on last status
+            const action = employeeData.lastAction === 'out' ? 'Sign In' : 'Sign Out';
+            
+            // Add to logs
+            addLogEntry(employeeData, action, currentTime);
+            
+            // Show success message
+            showAlert(`${employeeData.name} - ${action} recorded at ${currentTime}`, 'success');
+            
+            // In real application, send data to backend:
+            /*
+            fetch('/api/attendance', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    employee_id: employeeId,
+                    action: action,
+                    timestamp: new Date().toISOString()
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    addLogEntry(data.employee, data.action, data.time);
+                    showAlert(data.message, 'success');
+                } else {
+                    showAlert(data.error, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Failed to record attendance', 'error');
+            });
+            */
+        }
+
+        function onScanSuccess(decodedText, decodedResult) {
+            console.log(`QR Code scanned: ${decodedText}`);
+            processAttendance(decodedText);
+            
+            // Brief pause before allowing next scan
+            setTimeout(() => {
+                if (html5QrcodeScanner) {
+                    html5QrcodeScanner.resume();
+                }
+            }, 2000);
+        }
+
+        function onScanError(errorMessage) {
+            // Handle scan error silently
+            console.log(`QR Code scan error: ${errorMessage}`);
+        }
+
+        function startScanner() {
+            if (html5QrcodeScanner) {
+                stopScanner();
+            }
+            
+            html5QrcodeScanner = new Html5Qrcode("qr-reader");
+            
+            html5QrcodeScanner.start(
+                { facingMode: "environment" },
+                {
+                    fps: 10,
+                    qrbox: { width: 250, height: 250 }
+                },
+                onScanSuccess,
+                onScanError
+            ).catch(err => {
+                console.error("Unable to start scanning:", err);
+                showAlert("Unable to access camera. Please check permissions.", 'error');
+            });
+        }
+
+        function stopScanner() {
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.stop().then(() => {
+                    html5QrcodeScanner.clear();
+                    html5QrcodeScanner = null;
+                }).catch(err => {
+                    console.error("Unable to stop scanning:", err);
+                });
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            updateLogDisplay();
+            updateStats();
+        });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', function() {
+            stopScanner();
+        });
+    </script>
+</body>
+</html>

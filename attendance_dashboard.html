@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Attendance Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f5f5f5;
+            padding: 30px;
+        }
+        .container {
+            max-width: 1100px;
+            margin: auto;
+            background: #fff;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #333;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 25px;
+        }
+        .card {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 10px;
+            flex: 1;
+            text-align: center;
+            margin: 0 10px;
+            box-shadow: 0 1px 5px rgba(0,0,0,0.1);
+        }
+        .card h2 {
+            margin: 10px 0;
+            font-size: 28px;
+            color: #1976d2;
+        }
+        .card span {
+            font-size: 16px;
+            color: #555;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        table, th, td {
+            border: 1px solid #ccc;
+        }
+        th {
+            background-color: #1976d2;
+            color: white;
+            padding: 10px;
+        }
+        td {
+            padding: 10px;
+            text-align: center;
+        }
+        a.back-btn {
+            display: inline-block;
+            margin-top: 20px;
+            text-decoration: none;
+            color: white;
+            background: #1976d2;
+            padding: 10px 20px;
+            border-radius: 5px;
+        }
+        a.back-btn:hover {
+            background: #0d47a1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fa-solid fa-calendar-check"></i> Attendance Dashboard</h1>
+
+        <div class="stats">
+            <div class="card">
+                <h2>{{ total_present }}</h2>
+                <span>Total Present Today</span>
+            </div>
+            <div class="card">
+                <h2>{{ total_absent }}</h2>
+                <span>Total Absent Today</span>
+            </div>
+        </div>
+
+        <h3>Attendance Records</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Employee Name</th>
+                    <th>Date</th>
+                    <th>Sign In</th>
+                    <th>Sign Out</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in records %}
+                <tr>
+                    <td>{{ record[0] }}</td>
+                    <td>{{ record[1] }}</td>
+                    <td>{{ record[2] or '—' }}</td>
+                    <td>{{ record[3] or '—' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <a href="{{ url_for('dashboard') }}" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
+    </div>
+</body>
+</html>
